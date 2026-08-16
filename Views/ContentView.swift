@@ -12,9 +12,6 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Status bar area
-            statusBar
-
             // Main content
             ZStack {
                 Color.themeBG.ignoresSafeArea()
@@ -45,27 +42,6 @@ struct ContentView: View {
         .sheet(item: $detailTask) { task in
             TaskDetailView(task: task)
         }
-    }
-
-    // MARK: - Status Bar
-    private var statusBar: some View {
-        HStack {
-            Text(Date(), style: .time)
-                .font(.system(size: 13, weight: .bold))
-                .foregroundColor(.themeText)
-            Spacer()
-            HStack(spacing: 6) {
-                Image(systemName: "wifi")
-                    .font(.system(size: 11))
-                Image(systemName: "battery.100")
-                    .font(.system(size: 12))
-            }
-            .foregroundColor(.themeText)
-        }
-        .padding(.horizontal, 28)
-        .padding(.top, 8)
-        .padding(.bottom, 4)
-        .background(Color.themeBG)
     }
 
     // MARK: - Tab Bar

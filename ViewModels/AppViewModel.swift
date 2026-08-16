@@ -22,6 +22,7 @@ class AppViewModel: ObservableObject {
         self.appState = AppStateStore.load()
         loadTasks()
         checkDailyReset()
+        checkDailyBackup()
     }
 
     func loadTasks() {
@@ -71,6 +72,54 @@ class AppViewModel: ObservableObject {
         }
     }
 
+    // MARK: - Daily Backup
+    func checkDailyBackup() {
+        let today = Date().formatted(date: .numeric, time: .omitted)
+        guard BackupManager.lastBackupDate() != today else { return }
+        do {
+            let backup = try BackupManager.makeBackup(context: viewContext, appState: appState)
+            try BackupManager.write(backup)
+            BackupManager.markBackedUpToday()
+            BackupManager.pruneOldBackups()
+            logger.info("每日备份完成，共 \(backup.tasks.count) 个任务")
+        } catch {
+            logger.error("每日备份失败: \(error.localizedDescription)")
+        }
+    }
+
+    // MARK: - 导入备份
+
+    /// 导入备份：恢复玩家状态（覆盖当前存档），合并任务（按 id 跳过已存在的）
+    func importBackup(_ backup: BackupFile) throws -> BackupImportSummary {
+        appState = backup.appState
+
+        let request = TaskEntity.fetchRequest()
+        let existingTasks = try viewContext.fetch(request)
+        let existingIDs = Set(existingTasks.compactMap { $0.id })
+
+        var imported = 0
+        for item in backup.tasks {
+            guard !existingIDs.contains(item.id) else { continue }
+            let task = TaskEntity(context: viewContext)
+            task.id = item.id
+            task.title = item.title
+            task.desc = item.desc
+            task.cat = item.cat
+            task.xp = item.xp
+            task.done = item.done
+            task.progress = item.progress
+            task.createdAt = item.createdAt
+            task.displayOrder = item.displayOrder
+            imported += 1
+        }
+
+        saveContext()
+        loadTasks()
+        logger.info("导入备份: 新增 \(imported) 个任务, 跳过 \(backup.tasks.count - imported) 个重复任务")
+
+        return BackupImportSummary(importedTasks: imported, skippedTasks: backup.tasks.count - imported)
+    }
+    
     // MARK: - Task CRUD
     func addTask(title: String, desc: String = "", cat: TaskCategory, xp: Int, progress: Int = 0) {
         let task = TaskEntity(context: viewContext)

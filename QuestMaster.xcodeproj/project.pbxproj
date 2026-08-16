@@ -23,12 +23,16 @@
 		BEFEB56CEEC9246BAAFB9AB5 /* AppTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBC1496E5CE5848C19C6E368 /* AppTheme.swift */; };
 		BF3B12A2A536D4772AA71187 /* QuestMaster.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F06667D840BC84EC7836465C /* QuestMaster.xcdatamodeld */; };
 		D90B72D0301B1EB500283BF6 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = D90B72CF301B1EB500283BF6 /* .gitignore */; };
+		D93DE5CD30300CD0004401A1 /* BackupManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D93DE5CC30300CC7004401A1 /* BackupManager.swift */; };
+		D9BE0B9F30304383004670AF /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9BE0B9E3030437D004670AF /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		D90B72CF301B1EB500283BF6 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		D93DE5CC30300CC7004401A1 /* BackupManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupManager.swift; sourceTree = SOURCE_ROOT; };
+		D9BE0B9E3030437D004670AF /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		F039F35E8FF0148B49E480F1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Resources/Assets.xcassets; sourceTree = "<group>"; };
-		F06667D840BC84EC7836465C /* QuestMaster.xcdatamodeld */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodeld; path = QuestMaster.xcdatamodeld; sourceTree = "<group>"; };
+		F06667D840BC84EC7836465C /* QuestMaster.xcdatamodeld */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodeld; path = QuestMaster.xcdatamodeld; sourceTree = SOURCE_ROOT; };
 		F0EBF67ED7D1B416E8A9EB93 /* TaskEntity+CoreDataProperties.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "TaskEntity+CoreDataProperties.swift"; path = "Models/TaskEntity+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		F10265C8FFF7E4FA097B8088 /* PersistenceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PersistenceController.swift; path = App/PersistenceController.swift; sourceTree = "<group>"; };
 		F1B52452A8EF04EDB8F09FCE /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ProfileView.swift; path = Views/ProfileView.swift; sourceTree = "<group>"; };
@@ -64,11 +68,12 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		G7F33E2BC6DED4C13BF4D7D6 /*  */ = {
+		G7F33E2BC6DED4C13BF4D7D6 = {
 			isa = PBXGroup;
 			children = (
 				D90B72CF301B1EB500283BF6 /* .gitignore */,
 				F255975E8808246B3BB3A940 /* QuestMasterApp.swift */,
+				D93DE5CC30300CC7004401A1 /* BackupManager.swift */,
 				F10265C8FFF7E4FA097B8088 /* PersistenceController.swift */,
 				FF007E4DDA56448329E1EF69 /* TaskEntity+CoreDataClass.swift */,
 				F0EBF67ED7D1B416E8A9EB93 /* TaskEntity+CoreDataProperties.swift */,
@@ -79,18 +84,18 @@
 				F1B52452A8EF04EDB8F09FCE /* ProfileView.swift */,
 				FCE95B6528B804133879FDFB /* TaskDetailView.swift */,
 				FF2A9368467204031A7C24FD /* AddTaskView.swift */,
+				D9BE0B9E3030437D004670AF /* SettingsView.swift */,
 				FBD9C4DC53189466C8445E1C /* AppViewModel.swift */,
 				FBC1496E5CE5848C19C6E368 /* AppTheme.swift */,
 				F039F35E8FF0148B49E480F1 /* Assets.xcassets */,
 				F06667D840BC84EC7836465C /* QuestMaster.xcdatamodeld */,
 			);
-			name = "";
 			sourceTree = "<group>";
 		};
 		GC96F8FDA0F77403387F9309 = {
 			isa = PBXGroup;
 			children = (
-				G7F33E2BC6DED4C13BF4D7D6 /*  */,
+				G7F33E2BC6DED4C13BF4D7D6,
 				G7CF41E22F9E54FE291EC7F6 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -171,6 +176,7 @@
 				B6C8E9D2D277142AAB294598 /* TaskEntity+CoreDataClass.swift in Sources */,
 				BAC6ED6815D3A496EB6EA703 /* TaskEntity+CoreDataProperties.swift in Sources */,
 				BC82671DBF62D4362B5928D8 /* ContentView.swift in Sources */,
+				D9BE0B9F30304383004670AF /* SettingsView.swift in Sources */,
 				BA56D9FD24A9F42E1BF96107 /* HomeView.swift in Sources */,
 				B6F448DE03D4E4D03B4B064B /* BoardView.swift in Sources */,
 				BE1FF05A595D348938939DC4 /* StatsView.swift in Sources */,
@@ -179,6 +185,7 @@
 				BC235A38C201F4D0BA27CA0A /* AddTaskView.swift in Sources */,
 				BA14ACF79F0C9426F8B53304 /* AppViewModel.swift in Sources */,
 				BEFEB56CEEC9246BAAFB9AB5 /* AppTheme.swift in Sources */,
+				D93DE5CD30300CD0004401A1 /* BackupManager.swift in Sources */,
 				BF3B12A2A536D4772AA71187 /* QuestMaster.xcdatamodeld in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -296,13 +303,17 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8TR8B7S982;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = QuestMaster;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIRequiredDeviceCapabilities = armv7;
+				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -328,13 +339,17 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 8TR8B7S982;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = QuestMaster;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIRequiredDeviceCapabilities = armv7;
+				INFOPLIST_KEY_UIStatusBarStyle = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;

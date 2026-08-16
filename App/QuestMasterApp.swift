@@ -4,6 +4,8 @@ import SwiftUI
 struct QuestMasterApp: App {
     let persistenceController = PersistenceController.shared
 
+    @Environment(\.scenePhase) private var scenePhase
+
     @StateObject private var viewModel: AppViewModel
 
     init() {
@@ -16,6 +18,12 @@ struct QuestMasterApp: App {
             ContentView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
                 .environmentObject(viewModel)
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                viewModel.checkDailyReset()
+                viewModel.checkDailyBackup()
+            }
         }
     }
 }

@@ -2,10 +2,23 @@ import SwiftUI
 
 struct ProfileView: View {
     @EnvironmentObject var vm: AppViewModel
+    @State private var showSettings = false
 
     var body: some View {
+        if showSettings {
+            SettingsView(showSettings: $showSettings)
+        } else {
+            profileContent
+        }
+    }
+
+    private var profileContent: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 0) {
+                // Header
+                header
+                    .padding(.top, 8)
+
                 // Profile Card
                 profileCard
                     .padding(.vertical, 20)
@@ -23,6 +36,26 @@ struct ProfileView: View {
             .padding(.horizontal, 20)
         }
         .background(Color.themeBG)
+    }
+
+    // MARK: - Header
+    private var header: some View {
+        HStack {
+            Text("个人")
+                .font(.system(size: 24, weight: .heavy))
+            Spacer()
+            Button {
+                showSettings = true
+            } label: {
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 17))
+                    .foregroundColor(.themeText)
+                    .frame(width: 38, height: 38)
+                    .background(.themeCard)
+                    .clipShape(Circle())
+                    .cardShadow()
+            }
+        }
     }
 
     private var profileCard: some View {
