@@ -137,6 +137,16 @@ class AppViewModel: ObservableObject {
         logger.info("添加任务: id=\(task.wrappedID), title=\(task.wrappedTitle), category=\(cat.rawValue), xp=\(xp)")
     }
 
+    func updateTask(_ task: TaskEntity, title: String, desc: String, cat: TaskCategory, xp: Int) {
+        task.title = title
+        task.desc = desc
+        task.cat = cat.rawValue
+        task.xp = Int32(xp)
+        saveContext()
+        loadTasks()
+        logger.info("编辑任务: id=\(task.wrappedID), title=\(title), category=\(cat.rawValue), xp=\(xp)")
+    }
+
     func toggleDone(_ task: TaskEntity) {
         task.done.toggle()
         if task.done {

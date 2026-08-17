@@ -46,25 +46,32 @@ struct ContentView: View {
 
     // MARK: - Tab Bar
     private var tabBar: some View {
-        HStack(spacing: 0) {
-            tabItem(icon: "house.fill", label: "首页", tab: .home)
-            tabItem(icon: "list.bullet.clipboard", label: "任务榜", tab: .board)
-            Spacer()
-            tabItem(icon: "chart.bar.fill", label: "统计", tab: .stats)
-            tabItem(icon: "person.fill", label: "个人", tab: .profile)
-        }
-        .padding(.horizontal, 8)
-        .padding(.bottom, 20)
-        .padding(.top, 8)
-        .background(
-            .regularMaterial,
-            in: Rectangle()
-        )
-        .overlay(alignment: .top) {
-            Color.themeBorder.frame(height: 1)
-        }
-        .overlay(alignment: .bottom) {
-            // Add button
+        ZStack(alignment: .bottom) {
+            // MARK: 背景层：材质铺满整个 tabBar 区域，并延伸到屏幕物理底部
+            VStack(spacing: 0) {
+                Color.themeBorder.frame(height: 1)
+                Spacer(minLength: 0)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(
+                Rectangle()
+                    .fill(.regularMaterial)
+                    .ignoresSafeArea(edges: .bottom)
+            )
+
+            // MARK: 四个 tab 按钮
+            HStack(spacing: 0) {
+                tabItem(icon: "house.fill", label: "首页", tab: .home)
+                tabItem(icon: "list.bullet.clipboard", label: "任务榜", tab: .board)
+                Spacer()
+                tabItem(icon: "chart.bar.fill", label: "统计", tab: .stats)
+                tabItem(icon: "person.fill", label: "个人", tab: .profile)
+            }
+            .padding(.horizontal, 8)
+            .padding(.top, 8)
+            .padding(.bottom, 2)
+
+            // MARK: + 按钮：用 offset 上移半个按钮高度，tabBar 上边缘正好切在按钮 75% 位置
             Button {
                 showAddSheet = true
             } label: {
@@ -78,8 +85,10 @@ struct ContentView: View {
                             .shadow(color: .themePrimary.opacity(0.35), radius: 8, x: 0, y: 4)
                     )
             }
-            .offset(y: -38)
+            .offset(y: -26)
         }
+        //tabbar高度
+        .frame(height: 32)
     }
 
     private func tabItem(icon: String, label: String, tab: AppTab) -> some View {
@@ -96,7 +105,9 @@ struct ContentView: View {
                     .font(.system(size: 10, weight: selectedTab == tab ? .semibold : .medium))
                     .foregroundColor(selectedTab == tab ? .themePrimary : .themeTextMuted)
             }
-            .padding(.horizontal, 12)
+            //任务栏按钮距离
+            .padding(.horizontal, 18)
+            //任务栏按钮高度
             .padding(.vertical, 6)
         }
     }

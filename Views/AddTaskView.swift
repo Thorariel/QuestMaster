@@ -129,7 +129,7 @@ struct AddTaskView: View {
             .padding(.top, 8)
             .padding(.bottom, 16)
         }
-        .presentationDetents([.medium])
+        .presentationDetents([.large])
         .presentationDragIndicator(.hidden)
         .background(Color.themeCard)
     }
