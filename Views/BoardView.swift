@@ -95,14 +95,13 @@ struct BoardView: View {
                     .font(.system(size: 14))
                     .foregroundColor(.themeTextMuted)
                     .padding(.vertical, 40)
-            } else {
-                ForEach(TaskCategory.ordered, id: \.self) { cat in
-                    let tasks = vm.tasks(for: cat, includeDone: false)
-                    if !tasks.isEmpty {
-                        categorySection(cat: cat, tasks: tasks)
-                    }
-                }
             }
+
+            ForEach(TaskCategory.ordered, id: \.self) { cat in
+                let tasks = vm.tasks(for: cat, includeDone: false)
+                categorySection(cat: cat, tasks: tasks)
+            }
+
             Spacer().frame(height: 20)
         }
         .padding(.horizontal, 20)
@@ -144,8 +143,16 @@ struct BoardView: View {
 
             if !isCollapsed {
                 VStack(spacing: 0) {
-                    ForEach(tasks) { task in
-                        questCard(task: task)
+                    if tasks.isEmpty {
+                        Text("暂无任务")
+                            .font(.system(size: 13))
+                            .foregroundColor(.themeTextMuted)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 16)
+                    } else {
+                        ForEach(tasks) { task in
+                            questCard(task: task)
+                        }
                     }
                 }
                 .padding(.horizontal, 8)
