@@ -132,43 +132,53 @@ struct HomeView: View {
         let remaining = Int(ceil(Double(100 - pct) / 25.0))
 
         return VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("\(cat.emoji) \(cat.label)")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(cat.color)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 3)
-                    .background(cat.lightColor)
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
+            // 点击卡片信息部分弹出详情
+            Button {
+                detailTask = task
+            } label: {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("\(cat.emoji) \(cat.label)")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(cat.color)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 3)
+                            .background(cat.lightColor)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
 
-                Spacer()
-            }
+                        Spacer()
+                    }
 
-            Text(task.wrappedTitle)
-                .font(.system(size: 17, weight: .bold))
+                    Text(task.wrappedTitle)
+                        .font(.system(size: 17, weight: .bold))
 
-            Text("+\(task.xp) XP · \(task.done ? "已完成" : "进行中")")
-                .font(.system(size: 13))
-                .foregroundColor(.themeTextSecondary)
+                    Text("+\(task.xp) XP · \(task.done ? "已完成" : "进行中")")
+                        .font(.system(size: 13))
+                        .foregroundColor(.themeTextSecondary)
 
-            HStack(spacing: 10) {
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Capsule()
-                            .fill(Color.themeBorder)
-                            .frame(height: 6)
-                        Capsule()
-                            .fill(cat.color)
-                            .frame(width: geo.size.width * CGFloat(task.progress) / 100.0, height: 6)
+                    HStack(spacing: 10) {
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                Capsule()
+                                    .fill(Color.themeBorder)
+                                    .frame(height: 6)
+                                Capsule()
+                                    .fill(cat.color)
+                                    .frame(width: geo.size.width * CGFloat(task.progress) / 100.0, height: 6)
+                            }
+                        }
+                        .frame(height: 6)
+
+                        Text("\(pct)%")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.themeTextSecondary)
                     }
                 }
-                .frame(height: 6)
-
-                Text("\(pct)%")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(.themeTextSecondary)
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
 
+            // 继续任务按钮保持独立
             Button {
                 vm.advanceProgress(task)
             } label: {
