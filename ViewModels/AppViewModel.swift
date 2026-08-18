@@ -37,6 +37,39 @@ class AppViewModel: ObservableObject {
             print("Fetch error: \(error)")
             tasks = []
         }
+        syncAutoTracking()
+    }
+
+    // MARK: - 自动追踪同步
+    /// 把首页自动展示的专注任务/日常任务写入追踪状态，
+    /// 确保与任务详情页的追踪状态始终一致。
+    private func syncAutoTracking() {
+        var changed = false
+
+        // 1. 若没有聚焦任务，自动聚焦第一个活跃主线任务或活跃非日常任务
+        if appState.focusQuestID == nil,
+           let autoFocus = tasks.first(where: { !$0.done && $0.wrappedCat == .main })
+               ?? tasks.first(where: { !$0.done && $0.wrappedCat != .daily }) {
+            appState.focusQuestID = autoFocus.wrappedID
+            changed = true
+        }
+
+        // 2. 若追踪的日常不足 3 个，自动补充活跃的日常任务
+        if appState.trackedDailyIDs.count < 3 {
+            let trackedIDs = Set(appState.trackedDailyIDs)
+            let candidates = tasks
+                .filter { $0.wrappedCat == .daily && !$0.done && !trackedIDs.contains($0.wrappedID) }
+                .sorted { ($0.createdAt ?? Date()) < ($1.createdAt ?? Date()) }
+            let needed = 3 - appState.trackedDailyIDs.count
+            for task in candidates.prefix(needed) {
+                appState.trackedDailyIDs.append(task.wrappedID)
+                changed = true
+            }
+        }
+
+        if changed {
+            appState.save()
+        }
     }
 
     // MARK: - Daily Reset
@@ -138,10 +171,33 @@ class AppViewModel: ObservableObject {
     }
 
     func updateTask(_ task: TaskEntity, title: String, desc: String, cat: TaskCategory, xp: Int) {
+        let oldCat = task.wrappedCat
         task.title = title
         task.desc = desc
         task.cat = cat.rawValue
         task.xp = Int32(xp)
+
+        // 类别变化时同步追踪状态，避免首页与详情页不一致
+        if oldCat != cat {
+            if cat == .daily {
+                // 进入日常：清除聚焦，并加入日常追踪
+                if appState.focusQuestID == task.wrappedID {
+                    appState.focusQuestID = nil
+                }
+                if !appState.trackedDailyIDs.contains(task.wrappedID) {
+                    appState.trackedDailyIDs.insert(task.wrappedID, at: 0)
+                    if appState.trackedDailyIDs.count > 3 {
+                        appState.trackedDailyIDs = Array(appState.trackedDailyIDs.prefix(3))
+                    }
+                }
+            } else {
+                // 离开日常：移除日常追踪，并设为聚焦任务
+                appState.trackedDailyIDs.removeAll { $0 == task.wrappedID }
+                appState.focusQuestID = task.wrappedID
+            }
+            appState.save()
+        }
+
         saveContext()
         loadTasks()
         logger.info("编辑任务: id=\(task.wrappedID), title=\(title), category=\(cat.rawValue), xp=\(xp)")
@@ -273,23 +329,17 @@ class AppViewModel: ObservableObject {
 
     var activeTasks: [TaskEntity] { tasks.filter { !$0.done } }
 
-    /// 专注任务：优先返回手动聚焦的任务（若有），否则返回第一个活跃的主线任务或第一个活跃的非日常任务。
+    /// 专注任务：以 appState 记录的聚焦状态为准（自动聚焦已在 loadTasks 时同步）
     var focusTask: TaskEntity? {
-        if let id = appState.focusQuestID,
-           let task = tasks.first(where: { $0.wrappedID == id && !$0.done }) {
-            return task
-        }
-        // Fallback: first active main task, or any active non-daily task
-        return tasks.first(where: { !$0.done && $0.wrappedCat == .main })
-            ?? tasks.first(where: { !$0.done && $0.wrappedCat != .daily })
+        guard let id = appState.focusQuestID else { return nil }
+        return tasks.first(where: { $0.wrappedID == id && !$0.done })
     }
 
+    /// 日常任务：以 appState 记录的追踪状态为准（自动补充已在 loadTasks 时同步）
     var trackedDailies: [TaskEntity] {
-        let tracked = appState.trackedDailyIDs
-            .compactMap { id in tasks.first(where: { $0.wrappedID == id && $0.wrappedCat == .daily }) }
-        let others = tasks.filter { $0.wrappedCat == .daily && !$0.done && !appState.trackedDailyIDs.contains($0.wrappedID) }
-            .sorted { ($0.createdAt ?? Date()) < ($1.createdAt ?? Date()) }
-        return Array((tracked + others).prefix(3))
+        appState.trackedDailyIDs.compactMap { id in
+            tasks.first(where: { $0.wrappedID == id && $0.wrappedCat == .daily })
+        }
     }
 
     var greeting: String {
