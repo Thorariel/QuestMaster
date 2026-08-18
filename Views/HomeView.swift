@@ -205,13 +205,13 @@ struct HomeView: View {
     }
 
     private func dailyItem(task: TaskEntity) -> some View {
-        Button {
-            if !task.done {
-                vm.toggleDone(task)
-            }
-        } label: {
-            HStack(spacing: 12) {
-                // Check circle
+        HStack(spacing: 12) {
+            // Check circle - 只有点击这个圆圈才会完成/取消完成
+            Button {
+                if !task.done {
+                    vm.toggleDone(task)
+                }
+            } label: {
                 ZStack {
                     Circle()
                         .stroke(task.done ? Color.clear : Color.themeBorder, lineWidth: 2)
@@ -225,37 +225,44 @@ struct HomeView: View {
                             .foregroundColor(.white)
                     }
                 }
-
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(task.wrappedTitle)
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(task.done ? .themeTextMuted : .themeText)
-                        .strikethrough(task.done)
-
-                    Text("\(task.wrappedCat.emoji) \(task.wrappedCat.label)")
-                        .font(.system(size: 12))
-                        .foregroundColor(.themeTextMuted)
-                }
-
-                Spacer()
-
-                Text("+\(task.xp)")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundColor(.themeGoldDark)
+                .frame(width: 24, height: 24)
+                .contentShape(Circle())
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 14)
-            .background(Color.themeCard)
-            .clipShape(RoundedRectangle(cornerRadius: AppRadius.small))
-            .cardShadow()
-        }
-        .contextMenu {
+            .buttonStyle(.plain)
+            .accessibilityLabel(task.done ? "取消完成" : "完成任务")
+
+            // 点击卡片其余部分直接弹出详情（与任务列表页一致）
             Button {
                 detailTask = task
             } label: {
-                Label("详情", systemImage: "info.circle")
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(task.wrappedTitle)
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(task.done ? .themeTextMuted : .themeText)
+                            .strikethrough(task.done)
+
+                        Text("\(task.wrappedCat.emoji) \(task.wrappedCat.label)")
+                            .font(.system(size: 12))
+                            .foregroundColor(.themeTextMuted)
+                    }
+
+                    Spacer()
+
+                    Text("+\(task.xp)")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(.themeGoldDark)
+                }
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .background(Color.themeCard)
+        .clipShape(RoundedRectangle(cornerRadius: AppRadius.small))
+        .cardShadow()
     }
 
     // MARK: - Helpers
