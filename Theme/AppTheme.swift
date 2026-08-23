@@ -97,12 +97,30 @@ enum TaskCategory: String, CaseIterable, Codable {
         }
     }
 
+    /// 该类别任务可选的积分范围
+    var xpRange: ClosedRange<Double> {
+        switch self {
+        case .main: return 10...100
+        case .side, .adventure: return 1...25
+        case .daily: return 1...10
+        }
+    }
+
+    /// 积分滑块步进
+    var xpStep: Double {
+        switch self {
+        case .main: return 5
+        case .side, .adventure: return 1
+        case .daily: return 1
+        }
+    }
+
+    /// 该类别默认积分
     var defaultXP: Int {
         switch self {
-        case .daily: return 8
-        case .side: return 25
-        case .adventure: return 35
         case .main: return 50
+        case .side, .adventure: return 10
+        case .daily: return 5
         }
     }
 }

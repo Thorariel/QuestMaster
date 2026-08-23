@@ -212,16 +212,25 @@ struct TaskEditFormView: View {
     @State private var title: String = ""
     @State private var desc: String = ""
     @State private var selectedCat: TaskCategory = .side
-    @State private var xpValue: Double = 25
+    /// 用户目标经验值（不随类别切换而 clamp，保留原始值）
+    @State private var originalXP: Double = 10
+    /// 当前显示的已收敛经验值（保存时使用）
+    @State private var xpValue: Double = 10
     @State private var showTitleError = false
+    @State private var showCategoryChangeAlert = false
 
     init(task: TaskEntity, isEditing: Binding<Bool>) {
         self.task = task
         self._isEditing = isEditing
         _title = State(initialValue: task.wrappedTitle)
         _desc = State(initialValue: task.wrappedDesc)
-        _selectedCat = State(initialValue: task.wrappedCat)
-        _xpValue = State(initialValue: Double(task.xp))
+        let initialCat = task.wrappedCat
+        _selectedCat = State(initialValue: initialCat)
+        // 保留任务原始经验值作为基准，不被 clamp 覆盖
+        let rawXP = Double(task.xp)
+        _originalXP = State(initialValue: rawXP)
+        // 显示值收敛到当前类别允许的范围内
+        _xpValue = State(initialValue: min(max(rawXP, initialCat.xpRange.lowerBound), initialCat.xpRange.upperBound))
     }
 
     var body: some View {
@@ -267,6 +276,8 @@ struct TaskEditFormView: View {
                             ForEach(TaskCategory.allCases, id: \.self) { cat in
                                 Button {
                                     selectedCat = cat
+                                    // 基于原始目标值重新收敛，避免 clamp 后丢失原始值
+                                    xpValue = min(max(originalXP, cat.xpRange.lowerBound), cat.xpRange.upperBound)
                                 } label: {
                                     HStack(spacing: 8) {
                                         Text(cat.emoji)
@@ -293,8 +304,19 @@ struct TaskEditFormView: View {
                     // XP Slider
                     formField(label: "经验值") {
                         HStack(spacing: 12) {
-                            Slider(value: $xpValue, in: 5...100, step: 5)
-                                .tint(.themePrimary)
+                            Slider(
+                                value: Binding(
+                                    get: { xpValue },
+                                    set: { newValue in
+                                        // 只有用户手动滑动时更新，同时同步原始目标值
+                                        xpValue = newValue
+                                        originalXP = newValue
+                                    }
+                                ),
+                                in: selectedCat.xpRange,
+                                step: selectedCat.xpStep
+                            )
+                            .tint(.themePrimary)
 
                             Text("\(Int(xpValue))")
                                 .font(.system(size: 18, weight: .heavy))
@@ -338,6 +360,29 @@ struct TaskEditFormView: View {
             .padding(.top, 8)
             .padding(.bottom, 16)
         }
+        .overlay {
+            if showCategoryChangeAlert {
+                CategoryChangeAlertView(
+                    oldCat: task.wrappedCat,
+                    newCat: selectedCat,
+                    oldXP: Int(task.xp),
+                    newXP: Int(xpValue),
+                    onCancel: {
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            showCategoryChangeAlert = false
+                        }
+                    },
+                    onConfirm: {
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            showCategoryChangeAlert = false
+                        }
+                        performSave()
+                    }
+                )
+                .transition(.opacity.combined(with: .scale(scale: 0.92)))
+                .zIndex(1)
+            }
+        }
     }
 
     private func formField<Content: View>(label: String, @ViewBuilder content: () -> Content) -> some View {
@@ -359,6 +404,20 @@ struct TaskEditFormView: View {
             return
         }
 
+        // 如果修改了任务类别，先弹出确认提示
+        if selectedCat != task.wrappedCat {
+            withAnimation(.easeInOut(duration: 0.15)) {
+                showCategoryChangeAlert = true
+            }
+            return
+        }
+
+        performSave()
+    }
+
+    private func performSave() {
+        let trimmed = title.trimmingCharacters(in: .whitespaces)
+
         withAnimation(.easeInOut(duration: 0.2)) {
             vm.updateTask(
                 task,
@@ -369,6 +428,134 @@ struct TaskEditFormView: View {
             )
             isEditing = false
         }
+    }
+}
+
+// MARK: - 武侠风改派确认弹窗
+struct CategoryChangeAlertView: View {
+    let oldCat: TaskCategory
+    let newCat: TaskCategory
+    let oldXP: Int
+    let newXP: Int
+    let onCancel: () -> Void
+    let onConfirm: () -> Void
+
+    private var xpChanged: Bool { oldXP != newXP }
+    private var capChanged: Bool {
+        Int(oldCat.xpRange.upperBound) != Int(newCat.xpRange.upperBound)
+    }
+    private var xpDecreased: Bool { newXP < oldXP }
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.45)
+                .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // 标题区
+                VStack(spacing: 4) {
+                    Text("⚔️ 任务改派")
+                        .font(.system(size: 20, weight: .heavy))
+                    Text("此任务将更换类别重新发布，请批准！")
+                        .font(.system(size: 12))
+                        .foregroundColor(.themeTextSecondary)
+                        .padding(.top, 10)
+                }
+                .padding(.top, 20)
+                .padding(.bottom, 16)
+
+                // 变更明细
+                VStack(spacing: 8) {
+                    changeRow(
+                        label: "任务类别",
+                        oldValue: "\(oldCat.emoji) \(oldCat.label)",
+                        newValue: "\(newCat.emoji) \(newCat.label)"
+                    )
+                    changeRow(
+                        label: "经验值",
+                        oldValue: "\(oldXP)",
+                        newValue: "\(newXP)",
+                        highlight: xpChanged && xpDecreased,
+                        suffix: "点"
+                    )
+                    changeRow(
+                        label: "经验上限",
+                        oldValue: "\(Int(oldCat.xpRange.upperBound))",
+                        newValue: "\(Int(newCat.xpRange.upperBound))",
+                        highlight: capChanged && newXP < oldXP,
+                        suffix: "点"
+                    )
+                }
+                .padding(12)
+                .background(Color.themeBG)
+                .clipShape(RoundedRectangle(cornerRadius: AppRadius.small))
+                .padding(.horizontal, 20)
+
+                // 提示文案
+                Text("确认后经验值将按新类别规则计算")
+                    .font(.system(size: 12))
+                    .foregroundColor(.themeTextMuted)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 10)
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 14)
+
+                // 按钮
+                HStack(spacing: 10) {
+                    Button(action: onCancel) {
+                        Text("再想想")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundColor(.themeTextSecondary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(Color.themeBG)
+                            .clipShape(RoundedRectangle(cornerRadius: AppRadius.extraSmall))
+                    }
+
+                    Button(action: onConfirm) {
+                        Text("确认")
+                            .font(.system(size: 15, weight: .bold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 12)
+                            .background(Color.themePrimary)
+                            .clipShape(RoundedRectangle(cornerRadius: AppRadius.extraSmall))
+                    }
+                }
+                .padding(20)
+            }
+            .background(.themeCard)
+            .clipShape(RoundedRectangle(cornerRadius: AppRadius.default))
+            .padding(.horizontal, 32)
+        }
+    }
+
+    private func changeRow(label: String, oldValue: String, newValue: String, highlight: Bool = false, suffix: String = "") -> some View {
+        HStack(spacing: 8) {
+            Text(label)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundColor(.themeTextMuted)
+                .frame(width: 56, alignment: .leading)
+
+            Text("\(oldValue)\(suffix)")
+                .font(.system(size: 14, weight: .bold))
+                .foregroundColor(.themeTextSecondary)
+                .strikethrough()
+
+            Image(systemName: "arrow.right")
+                .font(.system(size: 11, weight: .bold))
+                .foregroundColor(.themeTextMuted)
+
+            Text("\(newValue)\(suffix)")
+                .font(.system(size: 14, weight: .heavy))
+                .foregroundColor(highlight ? .themeCoral : .themeText)
+
+            Spacer()
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(.themeCard)
+        .clipShape(RoundedRectangle(cornerRadius: AppRadius.extraSmall))
     }
 }
 

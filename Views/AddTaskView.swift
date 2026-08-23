@@ -7,7 +7,7 @@ struct AddTaskView: View {
     @State private var title: String = ""
     @State private var desc: String = ""
     @State private var selectedCat: TaskCategory = .side
-    @State private var xpValue: Double = 25
+    @State private var xpValue: Double = 10
     @State private var showTitleError = false
 
     var body: some View {
@@ -86,7 +86,7 @@ struct AddTaskView: View {
                     // XP Slider
                     formField(label: "经验值") {
                         HStack(spacing: 12) {
-                            Slider(value: $xpValue, in: 5...100, step: 5)
+                            Slider(value: $xpValue, in: selectedCat.xpRange, step: selectedCat.xpStep)
                                 .tint(.themePrimary)
 
                             Text("\(Int(xpValue))")

@@ -60,4 +60,4 @@ private let sampleTitles = [
 ]
 
 private let sampleCats = ["main", "side", "adventure", "daily", "side", "main"]
-private let sampleXPs = [50, 25, 35, 8, 30, 60]
+private let sampleXPs = [50, 10, 10, 5, 15, 100]
