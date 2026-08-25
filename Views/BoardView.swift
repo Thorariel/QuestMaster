@@ -14,7 +14,7 @@ struct BoardView: View {
 
         var label: String {
             switch self {
-            case .all: return "全部"
+            case .all: return "进行中"
             case .main: return "主线"
             case .side: return "支线"
             case .adventure: return "奇遇"
@@ -167,7 +167,7 @@ struct BoardView: View {
     // MARK: - Single Category View
     private var singleCategoryView: some View {
         let cat = selectedFilter.category!
-        let allTasks = vm.tasks(for: cat)
+        let allTasks = vm.tasksIncludingPending(for: cat)
 
         return VStack(spacing: 10) {
             if allTasks.isEmpty {
@@ -193,11 +193,23 @@ struct BoardView: View {
             detailTask = task
         } label: {
             VStack(spacing: 6) {
-                HStack(alignment: .top) {
+                HStack(alignment: .top, spacing: 8) {
                     Text(task.wrappedTitle)
                         .font(.system(size: 15, weight: .bold))
                         .foregroundColor(.themeText)
+
+                    if !task.isTriggered {
+                        Text("🔒 未触发")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(.themeTextMuted)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(Color.themeBG)
+                            .clipShape(Capsule())
+                    }
+
                     Spacer()
+
                     Text("+\(task.xp)")
                         .font(.system(size: 13, weight: .bold))
                         .foregroundColor(cat.color)
@@ -214,11 +226,17 @@ struct BoardView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 HStack {
-                    Text(task.done ? "✅ 已完成" : "\(cat.emoji) \(cat.label)")
-                        .font(.system(size: 12))
-                        .foregroundColor(.themeTextMuted)
+                    if task.isTriggered {
+                        Text(task.done ? "✅ 已完成" : "\(cat.emoji) \(cat.label)")
+                            .font(.system(size: 12))
+                            .foregroundColor(.themeTextMuted)
+                    } else {
+                        Text("🔒 未触发 · \(cat.emoji) \(cat.label)")
+                            .font(.system(size: 12))
+                            .foregroundColor(.themeTextMuted)
+                    }
                     Spacer()
-                    if task.progress > 0 && !task.done {
+                    if task.isTriggered && task.progress > 0 && !task.done {
                         Text("\(task.progress)%")
                             .font(.system(size: 12))
                             .foregroundColor(.themeTextMuted)
@@ -228,8 +246,9 @@ struct BoardView: View {
             .padding(16)
             .background(.themeCard)
             .clipShape(RoundedRectangle(cornerRadius: AppRadius.small))
-            .opacity(task.done ? 0.65 : 1.0)
+            .opacity(task.isTriggered ? (task.done ? 0.65 : 1.0) : 0.75)
         }
+        .buttonStyle(.plain)
     }
 }
 

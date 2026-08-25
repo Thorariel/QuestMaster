@@ -1,9 +1,3 @@
-//
-//  BackupManager.swift
-//  QuestMaster
-//
-//  Created by Lei Song on 2026/8/15.
-//
 import Foundation
 import CoreData
 
@@ -19,6 +13,12 @@ struct TaskBackupItem: Codable {
     let progress: Int32
     let createdAt: Date?
     let displayOrder: Int32
+
+    // 触发条件字段（旧备份可能没有，故使用 Optional）
+    let isTriggered: Bool?
+    let triggerType: String?
+    let triggerLocation: String?
+    let triggerDate: Date?
 }
 
 struct BackupFile: Codable {
@@ -103,7 +103,11 @@ enum BackupManager {
                 done: task.done,
                 progress: task.progress,
                 createdAt: task.createdAt,
-                displayOrder: task.displayOrder
+                displayOrder: task.displayOrder,
+                isTriggered: task.isTriggered,
+                triggerType: task.triggerType,
+                triggerLocation: task.triggerLocation,
+                triggerDate: task.triggerDate
             )
         }
         return BackupFile(version: backupVersion, createdAt: Date(), appState: appState, tasks: items)

@@ -23,6 +23,7 @@ struct QuestMasterApp: App {
             if newPhase == .active {
                 viewModel.checkDailyReset()
                 viewModel.checkDailyBackup()
+                viewModel.evaluateTriggers()
             }
         }
     }

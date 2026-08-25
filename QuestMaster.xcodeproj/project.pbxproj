@@ -24,12 +24,16 @@
 		BF3B12A2A536D4772AA71187 /* QuestMaster.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = F06667D840BC84EC7836465C /* QuestMaster.xcdatamodeld */; };
 		D90B72D0301B1EB500283BF6 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = D90B72CF301B1EB500283BF6 /* .gitignore */; };
 		D93DE5CD30300CD0004401A1 /* BackupManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D93DE5CC30300CC7004401A1 /* BackupManager.swift */; };
+		D9B0ED42303D7B6D007E885C /* LocationTriggerMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B0ED41303D7B6D007E885C /* LocationTriggerMonitor.swift */; };
+		D9B0ED4A303D9E26007E885C /* TaskTrigger.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9B0ED49303D9E26007E885C /* TaskTrigger.swift */; };
 		D9BE0B9F30304383004670AF /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9BE0B9E3030437D004670AF /* SettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		D90B72CF301B1EB500283BF6 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		D93DE5CC30300CC7004401A1 /* BackupManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupManager.swift; sourceTree = SOURCE_ROOT; };
+		D9B0ED41303D7B6D007E885C /* LocationTriggerMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationTriggerMonitor.swift; sourceTree = "<group>"; };
+		D9B0ED49303D9E26007E885C /* TaskTrigger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskTrigger.swift; sourceTree = "<group>"; };
 		D9BE0B9E3030437D004670AF /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		F039F35E8FF0148B49E480F1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Resources/Assets.xcassets; sourceTree = "<group>"; };
 		F06667D840BC84EC7836465C /* QuestMaster.xcdatamodeld */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodeld; path = QuestMaster.xcdatamodeld; sourceTree = SOURCE_ROOT; };
@@ -89,6 +93,8 @@
 				FBC1496E5CE5848C19C6E368 /* AppTheme.swift */,
 				F039F35E8FF0148B49E480F1 /* Assets.xcassets */,
 				F06667D840BC84EC7836465C /* QuestMaster.xcdatamodeld */,
+				D9B0ED41303D7B6D007E885C /* LocationTriggerMonitor.swift */,
+				D9B0ED49303D9E26007E885C /* TaskTrigger.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -171,8 +177,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9B0ED4A303D9E26007E885C /* TaskTrigger.swift in Sources */,
 				B1A55BA7694004F00AF6CEDE /* QuestMasterApp.swift in Sources */,
 				B028B69875FE54A0DB7DC660 /* PersistenceController.swift in Sources */,
+				D9B0ED42303D7B6D007E885C /* LocationTriggerMonitor.swift in Sources */,
 				B6C8E9D2D277142AAB294598 /* TaskEntity+CoreDataClass.swift in Sources */,
 				BAC6ED6815D3A496EB6EA703 /* TaskEntity+CoreDataProperties.swift in Sources */,
 				BC82671DBF62D4362B5928D8 /* ContentView.swift in Sources */,

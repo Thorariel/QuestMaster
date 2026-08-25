@@ -18,6 +18,11 @@ struct PersistenceController {
             task.progress = Int32(i * 20)
             task.createdAt = Date()
             task.displayOrder = Int32(i)
+
+            task.isTriggered = true
+            task.triggerType = nil
+            task.triggerLocation = nil
+            task.triggerDate = nil
         }
 
         do {

@@ -10,6 +10,9 @@ struct AddTaskView: View {
     @State private var xpValue: Double = 10
     @State private var showTitleError = false
 
+    @State private var triggerEnabled = false
+    @State private var triggerConfig = TaskTriggerConfig()
+
     var body: some View {
         VStack(spacing: 0) {
             // Handle
@@ -60,6 +63,12 @@ struct AddTaskView: View {
                                 Button {
                                     selectedCat = cat
                                     xpValue = Double(cat.defaultXP)
+
+                                    // 日常任务不支持条件触发
+                                    if cat == .daily {
+                                        triggerEnabled = false
+                                        triggerConfig = TaskTriggerConfig()
+                                    }
                                 } label: {
                                     HStack(spacing: 8) {
                                         Text(cat.emoji)
@@ -79,6 +88,7 @@ struct AddTaskView: View {
                                     )
                                     .clipShape(RoundedRectangle(cornerRadius: AppRadius.extraSmall))
                                 }
+                                .buttonStyle(.plain)
                             }
                         }
                     }
@@ -94,6 +104,19 @@ struct AddTaskView: View {
                                 .foregroundColor(.themePrimary)
                                 .frame(minWidth: 40)
                         }
+                    }
+
+                    // Trigger condition
+                    if selectedCat == .daily {
+                        Text("日常任务不支持条件触发")
+                            .font(.system(size: 12))
+                            .foregroundColor(.themeTextMuted)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    } else {
+                        TaskTriggerEditor(
+                            enabled: $triggerEnabled,
+                            config: $triggerConfig
+                        )
                     }
                 }
                 .padding(.horizontal, 24)
@@ -124,6 +147,7 @@ struct AddTaskView: View {
                         .background(.themePrimary)
                         .clipShape(RoundedRectangle(cornerRadius: AppRadius.extraSmall))
                 }
+                .buttonStyle(.plain)
             }
             .padding(.horizontal, 24)
             .padding(.top, 8)
@@ -153,11 +177,20 @@ struct AddTaskView: View {
             return
         }
 
+        let effectiveTrigger: TaskTriggerConfig
+
+        if selectedCat == .daily {
+            effectiveTrigger = TaskTriggerConfig()
+        } else {
+            effectiveTrigger = triggerEnabled ? triggerConfig : TaskTriggerConfig()
+        }
+
         vm.addTask(
             title: trimmed,
             desc: desc.trimmingCharacters(in: .whitespaces),
             cat: selectedCat,
-            xp: Int(xpValue)
+            xp: Int(xpValue),
+            triggerConfig: effectiveTrigger
         )
         dismiss()
     }

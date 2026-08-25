@@ -6,14 +6,12 @@ enum TaskTriggerType: String, CaseIterable, Identifiable {
     case none
     case location
     case specificDate
-    case weekdays
-    case daysLater
 
     var id: String { rawValue }
 
     /// 新建/编辑页面实际展示的可选触发条件
     static var selectableCases: [TaskTriggerType] {
-        [.location, .specificDate, .weekdays]
+        [.location, .specificDate]
     }
 
     var label: String {
@@ -21,8 +19,6 @@ enum TaskTriggerType: String, CaseIterable, Identifiable {
         case .none: return "无"
         case .location: return "地点"
         case .specificDate: return "具体时间"
-        case .weekdays: return "星期"
-        case .daysLater: return "N天后"
         }
     }
 
@@ -31,29 +27,9 @@ enum TaskTriggerType: String, CaseIterable, Identifiable {
         case .none: return "circle"
         case .location: return "mappin.and.ellipse"
         case .specificDate: return "calendar.badge.clock"
-        case .weekdays: return "calendar"
-        case .daysLater: return "hourglass"
         }
     }
 }
-
-// MARK: - 星期选项
-
-struct WeekdayOption: Identifiable {
-    let weekday: Int // Calendar: 1 = Sunday ... 7 = Saturday
-    var id: Int { weekday }
-
-    var shortName: String {
-        Self.chineseShortName(for: weekday)
-    }
-
-    static func chineseShortName(for weekday: Int) -> String {
-        let names = ["日", "一", "二", "三", "四", "五", "六"]
-        return names[weekday - 1]
-    }
-}
-
-let weekdayOptions: [WeekdayOption] = (1...7).map { WeekdayOption(weekday: $0) }
 
 // MARK: - 触发条件配置
 
@@ -61,25 +37,12 @@ struct TaskTriggerConfig: Equatable {
     var type: TaskTriggerType = .none
     var location: String = ""
     var date: Date = Date()
-    var weekdays: Set<Int> = []
-    var daysLater: Int = 1
-
-    var weekdayMask: Int32 {
-        weekdays.reduce(0) { $0 | (1 << ($1 - 1)) }
-    }
 
     static func from(task: TaskEntity) -> TaskTriggerConfig {
-        var type = task.wrappedTriggerType
-        if type == .daysLater {
-            type = .none
-        }
-
-        return TaskTriggerConfig(
-            type: type,
+        TaskTriggerConfig(
+            type: task.wrappedTriggerType,
             location: task.triggerLocation ?? "",
-            date: task.triggerDate ?? Date(),
-            weekdays: task.triggerWeekdaySet,
-            daysLater: Int(task.triggerDaysLater)
+            date: task.triggerDate ?? Date()
         )
     }
 
@@ -91,13 +54,6 @@ struct TaskTriggerConfig: Equatable {
             return location.isEmpty ? "未设置地点" : "到达 \(location)"
         case .specificDate:
             return date.formatted(date: .abbreviated, time: .shortened)
-        case .weekdays:
-            if weekdays.isEmpty { return "未选择星期" }
-            return weekdays.sorted()
-                .map { "周\(WeekdayOption.chineseShortName(for: $0))" }
-                .joined(separator: "、")
-        case .daysLater:
-            return "创建后 \(daysLater) 天"
         }
     }
 }
@@ -200,30 +156,7 @@ struct TaskTriggerEditor: View {
             .background(Color.themeBG)
             .clipShape(RoundedRectangle(cornerRadius: AppRadius.extraSmall))
 
-        case .weekdays:
-            HStack(spacing: 6) {
-                ForEach(weekdayOptions) { option in
-                    Button {
-                        if config.weekdays.contains(option.weekday) {
-                            config.weekdays.remove(option.weekday)
-                        } else {
-                            config.weekdays.insert(option.weekday)
-                        }
-                    } label: {
-                        Text("周\(option.shortName)")
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(config.weekdays.contains(option.weekday) ? .white : .themeTextSecondary)
-                            .frame(width: 36, height: 36)
-                            .background(
-                                config.weekdays.contains(option.weekday) ? Color.themePrimary : Color.themeBG
-                            )
-                            .clipShape(Circle())
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-
-        default:
+        case .none:
             EmptyView()
         }
     }

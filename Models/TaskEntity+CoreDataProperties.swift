@@ -17,11 +17,23 @@ extension TaskEntity {
     @NSManaged public var createdAt: Date?
     @NSManaged public var displayOrder: Int32
 
+    // 触发条件
+    @NSManaged public var isTriggered: Bool
+    @NSManaged public var triggerType: String?
+    @NSManaged public var triggerLocation: String?
+    @NSManaged public var triggerDate: Date?
+
     var wrappedID: String { id ?? UUID().uuidString }
     var wrappedTitle: String { title ?? "" }
     var wrappedDesc: String { desc ?? "" }
     var wrappedCat: TaskCategory { TaskCategory(rawValue: cat ?? "side") ?? .side }
     var wrappedCreatedAt: Date { createdAt ?? Date() }
+
+    var wrappedTriggerType: TaskTriggerType {
+        TaskTriggerType(rawValue: triggerType ?? "") ?? .none
+    }
+
+    var isPending: Bool { !isTriggered }
 }
 
 extension TaskEntity: Identifiable {

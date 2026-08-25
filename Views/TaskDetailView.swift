@@ -11,6 +11,7 @@ struct TaskDetailView: View {
     private var cat: TaskCategory { task.wrappedCat }
 
     private var isTracked: Bool {
+        guard task.isTriggered else { return false }
         if task.wrappedCat == .daily {
             return vm.appState.trackedDailyIDs.contains(task.wrappedID)
         }
@@ -47,8 +48,13 @@ struct TaskDetailView: View {
                 titleSection
                 descriptionSection
                 infoRow
-                if !task.done { progressSection }
-                actionButtons
+
+                if task.isTriggered {
+                    if !task.done { progressSection }
+                    actionButtons
+                } else {
+                    pendingTriggeredView
+                }
             }
             .padding(.horizontal, 24)
             .padding(.bottom, 24)
@@ -125,9 +131,59 @@ struct TaskDetailView: View {
         }
     }
 
+    private var pendingTriggeredView: some View {
+        VStack(spacing: 14) {
+            VStack(spacing: 6) {
+                Label("未触发任务", systemImage: "lock.fill")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.themeText)
+
+                Text("满足触发条件后会自动发布任务")
+                    .font(.system(size: 13))
+                    .foregroundColor(.themeTextSecondary)
+
+                let summary = TaskTriggerConfig.from(task: task).summary
+                if !summary.isEmpty {
+                    Text(summary)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.themePrimary)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color.themePrimaryLight)
+                        .clipShape(Capsule())
+                }
+            }
+
+            VStack(spacing: 10) {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isEditing = true
+                    }
+                } label: {
+                    Label("编辑任务", systemImage: "pencil")
+                        .font(.system(size: 15, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(Color.themePrimary)
+                        .clipShape(RoundedRectangle(cornerRadius: AppRadius.extraSmall))
+                }
+                .buttonStyle(ScaleButtonStyle())
+
+                actionButton(
+                    title: "🗑️ 删除",
+                    color: .themeBG,
+                    textColor: .themeCoral
+                ) {
+                    vm.deleteTask(task)
+                    dismiss()
+                }
+            }
+        }
+    }
+
     private var actionButtons: some View {
         VStack(spacing: 10) {
-            // 编辑按钮
             Button {
                 withAnimation(.easeInOut(duration: 0.2)) {
                     isEditing = true
@@ -218,19 +274,34 @@ struct TaskEditFormView: View {
     @State private var xpValue: Double = 10
     @State private var showTitleError = false
     @State private var showCategoryChangeAlert = false
+    @State private var showDailyBlockedAlert = false
+
+    @State private var triggerEnabled = false
+    @State private var triggerConfig = TaskTriggerConfig()
 
     init(task: TaskEntity, isEditing: Binding<Bool>) {
         self.task = task
         self._isEditing = isEditing
         _title = State(initialValue: task.wrappedTitle)
         _desc = State(initialValue: task.wrappedDesc)
+
         let initialCat = task.wrappedCat
         _selectedCat = State(initialValue: initialCat)
+
         // 保留任务原始经验值作为基准，不被 clamp 覆盖
         let rawXP = Double(task.xp)
         _originalXP = State(initialValue: rawXP)
         // 显示值收敛到当前类别允许的范围内
         _xpValue = State(initialValue: min(max(rawXP, initialCat.xpRange.lowerBound), initialCat.xpRange.upperBound))
+
+        if initialCat == .daily {
+            _triggerConfig = State(initialValue: TaskTriggerConfig())
+            _triggerEnabled = State(initialValue: false)
+        } else {
+            let initialTrigger = TaskTriggerConfig.from(task: task)
+            _triggerConfig = State(initialValue: initialTrigger)
+            _triggerEnabled = State(initialValue: initialTrigger.type != .none)
+        }
     }
 
     var body: some View {
@@ -275,7 +346,20 @@ struct TaskEditFormView: View {
                         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 2), spacing: 8) {
                             ForEach(TaskCategory.allCases, id: \.self) { cat in
                                 Button {
+                                    // 条件触发任务不能改成日常任务
+                                    if cat == .daily && triggerEnabled {
+                                        showDailyBlockedAlert = true
+                                        return
+                                    }
+
                                     selectedCat = cat
+
+                                    // 切换到日常任务时清空触发条件
+                                    if cat == .daily {
+                                        triggerEnabled = false
+                                        triggerConfig = TaskTriggerConfig()
+                                    }
+
                                     // 基于原始目标值重新收敛，避免 clamp 后丢失原始值
                                     xpValue = min(max(originalXP, cat.xpRange.lowerBound), cat.xpRange.upperBound)
                                 } label: {
@@ -297,6 +381,7 @@ struct TaskEditFormView: View {
                                     )
                                     .clipShape(RoundedRectangle(cornerRadius: AppRadius.extraSmall))
                                 }
+                                .buttonStyle(.plain)
                             }
                         }
                     }
@@ -323,6 +408,19 @@ struct TaskEditFormView: View {
                                 .foregroundColor(.themePrimary)
                                 .frame(minWidth: 40)
                         }
+                    }
+
+                    // Trigger condition
+                    if selectedCat == .daily {
+                        Text("日常任务不支持条件触发")
+                            .font(.system(size: 12))
+                            .foregroundColor(.themeTextMuted)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    } else {
+                        TaskTriggerEditor(
+                            enabled: $triggerEnabled,
+                            config: $triggerConfig
+                        )
                     }
                 }
                 .padding(.horizontal, 24)
@@ -355,6 +453,7 @@ struct TaskEditFormView: View {
                         .background(.themePrimary)
                         .clipShape(RoundedRectangle(cornerRadius: AppRadius.extraSmall))
                 }
+                .buttonStyle(.plain)
             }
             .padding(.horizontal, 24)
             .padding(.top, 8)
@@ -383,6 +482,11 @@ struct TaskEditFormView: View {
                 .zIndex(1)
             }
         }
+        .alert("不可修改", isPresented: $showDailyBlockedAlert) {
+            Button("好", role: .cancel) {}
+        } message: {
+            Text("条件触发任务不能修改为日常任务。")
+        }
     }
 
     private func formField<Content: View>(label: String, @ViewBuilder content: () -> Content) -> some View {
@@ -404,6 +508,11 @@ struct TaskEditFormView: View {
             return
         }
 
+        guard !(selectedCat == .daily && triggerEnabled) else {
+            showDailyBlockedAlert = true
+            return
+        }
+
         // 如果修改了任务类别，先弹出确认提示
         if selectedCat != task.wrappedCat {
             withAnimation(.easeInOut(duration: 0.15)) {
@@ -418,20 +527,29 @@ struct TaskEditFormView: View {
     private func performSave() {
         let trimmed = title.trimmingCharacters(in: .whitespaces)
 
+        let effectiveTrigger: TaskTriggerConfig
+
+        if selectedCat == .daily {
+            effectiveTrigger = TaskTriggerConfig()
+        } else {
+            effectiveTrigger = triggerEnabled ? triggerConfig : TaskTriggerConfig()
+        }
+
         withAnimation(.easeInOut(duration: 0.2)) {
             vm.updateTask(
                 task,
                 title: trimmed,
                 desc: desc.trimmingCharacters(in: .whitespaces),
                 cat: selectedCat,
-                xp: Int(xpValue)
+                xp: Int(xpValue),
+                triggerConfig: effectiveTrigger
             )
             isEditing = false
         }
     }
 }
 
-// MARK: - 武侠风改派确认弹窗
+// MARK: - 改派确认弹窗
 struct CategoryChangeAlertView: View {
     let oldCat: TaskCategory
     let newCat: TaskCategory
